@@ -5,11 +5,11 @@
   "main": "index.html",
   "private": true,
   "scripts": {
-    "dev": "serve -l 3000 .",
+    "dev": "npx --yes serve@14 -l 3000 .",
     "build:css": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css",
     "watch": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css --watch",
     "build": "npm run build:css",
-    "preview": "serve -l 3000 ."
+    "preview": "npx --yes serve@14 -l 3000 ."
   },
   "keywords": [
     "anonymous",
@@ -23,8 +23,5 @@
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19"
-  },
-  "devDependencies": {
-    "serve": "^14.2.4"
   }
 }

@@ -414,7 +414,7 @@ SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `v
 | **Root Directory** | `.` (default) |
 | **Build Command** | `npm run build` (or leave blank — `vercel.json` sets this) |
 | **Output Directory** | `.` (project root — **not** `public`) |
-| **Install Command** | `npm install` |
+| **Install Command** | `npm ci --omit=dev` (set in `vercel.json`; skips local-only tools) |
 
 `npm run build` only compiles Tailwind into `dist/tailwind-output.css`. Vercel serves `index.html`, `scripts/`, `styles/`, and the rest from the repo root.
 
@@ -424,7 +424,7 @@ In the Vercel dashboard, if **Output Directory** is set to `public`, change it t
 
 1. Push the **full project** to GitHub (not only `README.md`). The site needs `index.html`, `scripts/`, `dist/`, `assets/`, `fontawesome/`, and related files.
 2. Connect the GitHub repo in the [Vercel dashboard](https://vercel.com/new).
-3. Deploy. Deprecation warnings during `npm install` are normal and do not fail the build.
+3. Deploy. Vercel installs only production deps (Tailwind/PostCSS), so old `live-server` deprecation warnings should not appear.
 
 ### If the build fails
 
