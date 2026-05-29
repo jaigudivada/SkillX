@@ -412,13 +412,13 @@ SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `v
 |---------|--------|
 | **Framework Preset** | Other |
 | **Root Directory** | `.` (default) |
-| **Build Command** | `npm run build` (or leave blank — `vercel.json` sets this) |
-| **Output Directory** | `.` (project root — **not** `public`) |
-| **Install Command** | `npm ci --omit=dev` (set in `vercel.json`; skips local-only tools) |
+| **Build Command** | *(leave empty — uses `vercel.json` → `npm run vercel-build`)* |
+| **Output Directory** | `public` (or leave empty — `vercel.json` sets this) |
+| **Install Command** | *(leave empty — `vercel.json` handles install)* |
 
-`npm run build` only compiles Tailwind into `dist/tailwind-output.css`. Vercel serves `index.html`, `scripts/`, `styles/`, and the rest from the repo root.
+`npm run vercel-build` compiles Tailwind, then copies the static app into `public/` for Vercel to deploy.
 
-In the Vercel dashboard, if **Output Directory** is set to `public`, change it to **`.`** or clear it so it matches `vercel.json`.
+**Important:** In Vercel → **Settings → Build & Output**, either turn **off** “Override” toggles so `vercel.json` is used, or set values to match the table above. Mismatched dashboard settings (e.g. Output = `.` while the build writes `public/`) cause deploy failures.
 
 ### Before you deploy
 
@@ -429,8 +429,8 @@ In the Vercel dashboard, if **Output Directory** is set to `public`, change it t
 ### If the build fails
 
 - **`tailwindcss: command not found`** — Tailwind is in `dependencies` so it installs on Vercel; redeploy after pulling the latest `package.json`.
-- **No Output Directory named "public"** — Dashboard or an old `vercel.json` expects a `public/` folder SkillX does not use. Set **Output Directory** to **`.`** and push the latest `vercel.json`.
-- **Blank or broken page** — Output must be **`.`** (root), not `dist` (that folder is only compiled CSS).
+- **No Output Directory named "public"** — Push the latest code; `vercel-build` creates `public/` automatically. Set Output Directory to `public` or disable dashboard overrides.
+- **Blank or broken page** — Output must be `public`, not `dist` (CSS only).
 - **Only README on GitHub** — Run `git add .`, commit, and `git push` so all source files are on `main`.
 
 ---
