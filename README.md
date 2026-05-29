@@ -402,6 +402,36 @@ Understanding these boundaries helps set expectations:
 
 ---
 
+## Deploy on Vercel
+
+SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `vercel.json` so Vercel picks the right settings automatically.
+
+### Vercel project settings
+
+| Setting | Value |
+|---------|--------|
+| **Framework Preset** | Other |
+| **Root Directory** | `.` (default) |
+| **Build Command** | `npm run build` |
+| **Output Directory** | `.` |
+| **Install Command** | `npm install` |
+
+`npm run build` compiles Tailwind into `dist/tailwind-output.css`. The rest of the app (`index.html`, `scripts/`, `assets/`, etc.) is served from the project root.
+
+### Before you deploy
+
+1. Push the **full project** to GitHub (not only `README.md`). The site needs `index.html`, `scripts/`, `dist/`, `assets/`, `fontawesome/`, and related files.
+2. Connect the GitHub repo in the [Vercel dashboard](https://vercel.com/new).
+3. Deploy. Deprecation warnings during `npm install` are normal and do not fail the build.
+
+### If the build fails
+
+- **`tailwindcss: command not found`** — Tailwind is in `dependencies` so it installs on Vercel; redeploy after pulling the latest `package.json`.
+- **Blank or broken page** — Confirm **Output Directory** is `.`, not `dist` (only CSS lives in `dist/`).
+- **Only README on GitHub** — Run `git add .`, commit, and `git push` so all source files are on `main`.
+
+---
+
 ## License
 
 Copyright © 2026 **Jai Gudivada**. All rights reserved under the [MIT License](LICENSE).

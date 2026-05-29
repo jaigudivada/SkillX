@@ -19,10 +19,12 @@
   ],
   "author": "Jai Gudivada",
   "license": "MIT",
-  "devDependencies": {
+  "dependencies": {
     "autoprefixer": "^10.5.0",
-    "live-server": "^1.2.2",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
   }
 }
