@@ -9,6 +9,7 @@
     "build:css": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css",
     "watch": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css --watch",
     "build": "npm run build:css",
+    "build:vercel": "npm run build:css && node scripts/prepare-public.cjs",
     "preview": "live-server --port=3000 --open=/index.html"
   },
   "keywords": [
