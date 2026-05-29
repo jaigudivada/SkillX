@@ -412,11 +412,13 @@ SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `v
 |---------|--------|
 | **Framework Preset** | Other |
 | **Root Directory** | `.` (default) |
-| **Build Command** | `npm run build:vercel` (or leave blank to use `vercel.json`) |
-| **Output Directory** | `public` |
+| **Build Command** | `npm run build` (or leave blank — `vercel.json` sets this) |
+| **Output Directory** | `.` (project root — **not** `public`) |
 | **Install Command** | `npm install` |
 
-`npm run build:vercel` compiles Tailwind, then copies `index.html`, `scripts/`, `styles/`, `assets/`, and the rest into `public/` for Vercel to deploy.
+`npm run build` only compiles Tailwind into `dist/tailwind-output.css`. Vercel serves `index.html`, `scripts/`, `styles/`, and the rest from the repo root.
+
+In the Vercel dashboard, if **Output Directory** is set to `public`, change it to **`.`** or clear it so it matches `vercel.json`.
 
 ### Before you deploy
 
@@ -427,8 +429,8 @@ SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `v
 ### If the build fails
 
 - **`tailwindcss: command not found`** — Tailwind is in `dependencies` so it installs on Vercel; redeploy after pulling the latest `package.json`.
-- **No Output Directory named "public"** — Set **Output Directory** to `public`, or push the latest `vercel.json` (it runs `npm run build:vercel` to create that folder).
-- **Blank or broken page** — Output must be `public`, not `dist` (only CSS is built there).
+- **No Output Directory named "public"** — Dashboard or an old `vercel.json` expects a `public/` folder SkillX does not use. Set **Output Directory** to **`.`** and push the latest `vercel.json`.
+- **Blank or broken page** — Output must be **`.`** (root), not `dist` (that folder is only compiled CSS).
 - **Only README on GitHub** — Run `git add .`, commit, and `git push` so all source files are on `main`.
 
 ---

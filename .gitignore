@@ -22,7 +22,6 @@ coverage/
 
 # Build outputs
 build/
-public/
 
 # OS generated files
 .DS_Store
