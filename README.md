@@ -122,18 +122,13 @@ SkillX/
 ├── styles/
 │   └── main.css               # Component styles, variables, animations
 ├── scripts/
-│   ├── main.js                # Core application logic
+│   ├── main.js                # Core application logic (UI, admin, routing)
+│   ├── prepare-public.cjs     # Vercel: copies static files into public/
 │   ├── storage/
 │   │   └── localStorageStore.js
-│   ├── state/
-│   │   └── appState.js        # Shared state constants (used by some UI modules)
-│   ├── ui/
-│   │   ├── theme.js
-│   │   ├── toast.js
-│   │   ├── admin.js           # Supplementary admin helpers
-│   │   └── renderer.js
-│   └── utils/
-│       └── format.js
+│   └── ui/
+│       ├── theme.js
+│       └── toast.js
 ├── assets/
 │   ├── images/                # Logo, etc.
 │   └── fonts/                 # Self-hosted web fonts

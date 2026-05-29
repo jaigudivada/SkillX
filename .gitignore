@@ -33,9 +33,11 @@ public/
 ehthumbs.db
 Thumbs.db
 
-# IDE files
+# IDE & local tooling
 .vscode/
 .idea/
+.vercel/
+
 *.swp
 *.swo
 *~

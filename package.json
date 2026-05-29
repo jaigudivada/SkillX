@@ -9,8 +9,6 @@
     "build:css": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css",
     "watch": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css --watch",
     "build": "npm run build:css && node scripts/prepare-public.cjs",
-    "build:css-only": "npm run build:css",
-    "vercel-build": "npm run build",
     "preview": "npx --yes serve@14 -l 3000 ."
   },
   "keywords": [
