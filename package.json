@@ -5,12 +5,12 @@
   "main": "index.html",
   "private": true,
   "scripts": {
-    "dev": "live-server --port=3000 --open=/index.html",
+    "dev": "serve -l 3000 .",
     "build:css": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css",
     "watch": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css --watch",
     "build": "npm run build:css",
     "build:vercel": "npm run build:css && node scripts/prepare-public.cjs",
-    "preview": "live-server --port=3000 --open=/index.html"
+    "preview": "serve -l 3000 ."
   },
   "keywords": [
     "anonymous",
@@ -26,6 +26,6 @@
     "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
-    "live-server": "^1.2.2"
+    "serve": "^14.2.4"
   }
 }
