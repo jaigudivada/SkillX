@@ -404,7 +404,18 @@ Understanding these boundaries helps set expectations:
 
 ## Deploy on Vercel
 
-SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `vercel.json` so Vercel picks the right settings automatically.
+SkillX is a static site (HTML + CSS + JS at the repo root). `vercel.json` configures the deploy.
+
+### npm warnings vs real errors
+
+| Log line | Type | Blocks deploy? |
+|----------|------|----------------|
+| `npm warn deprecated urix`, `opn`, `uuid@3`, … | **Warning** (old transitive deps) | **No** |
+| `No Output Directory named "public" found` | **Error** (build/output mismatch) | **Yes** |
+
+SkillX does **not** use `live-server` (the usual source of `urix` / `opn` / `uuid@3` warnings). Vercel runs `npm install --omit=dev`, which installs only Tailwind, PostCSS, and Autoprefixer (~88 packages).
+
+**Do not** add `live-server` to fix warnings — that reintroduces deprecated packages.
 
 ### Vercel project settings
 
@@ -412,26 +423,26 @@ SkillX is a static site (HTML + CSS + JS at the repo root). The repo includes `v
 |---------|--------|
 | **Framework Preset** | Other |
 | **Root Directory** | `.` (default) |
-| **Build Command** | *(leave empty — uses `vercel.json` → `npm run vercel-build`)* |
-| **Output Directory** | `public` (or leave empty — `vercel.json` sets this) |
-| **Install Command** | *(leave empty — `vercel.json` handles install)* |
+| **Build Command** | `npm run build` *(or leave empty — `vercel.json` sets this)* |
+| **Output Directory** | `public` |
+| **Install Command** | *(leave empty — `vercel.json` sets install)* |
 
-`npm run vercel-build` compiles Tailwind, then copies the static app into `public/` for Vercel to deploy.
+`npm run build` compiles Tailwind, then copies the app into `public/` (see `scripts/prepare-public.cjs`).
 
-**Important:** In Vercel → **Settings → Build & Output**, either turn **off** “Override” toggles so `vercel.json` is used, or set values to match the table above. Mismatched dashboard settings (e.g. Output = `.` while the build writes `public/`) cause deploy failures.
+**Important:** Turn **off** dashboard overrides that conflict with the table (e.g. Output = `.` while the build writes `public/`).
 
 ### Before you deploy
 
-1. Push the **full project** to GitHub (not only `README.md`). The site needs `index.html`, `scripts/`, `dist/`, `assets/`, `fontawesome/`, and related files.
-2. Connect the GitHub repo in the [Vercel dashboard](https://vercel.com/new).
-3. Deploy. Vercel installs only production deps (Tailwind/PostCSS), so old `live-server` deprecation warnings should not appear.
+1. Push the **full project** to GitHub (`index.html`, `scripts/`, `dist/`, `assets/`, `fontawesome/`, etc.).
+2. Connect the repo at [vercel.com/new](https://vercel.com/new).
+3. Redeploy with **Clear build cache** if you still see old `live-server` warnings from a previous deploy.
 
 ### If the build fails
 
-- **`tailwindcss: command not found`** — Tailwind is in `dependencies` so it installs on Vercel; redeploy after pulling the latest `package.json`.
-- **No Output Directory named "public"** — Push the latest code; `vercel-build` creates `public/` automatically. Set Output Directory to `public` or disable dashboard overrides.
-- **Blank or broken page** — Output must be `public`, not `dist` (CSS only).
-- **Only README on GitHub** — Run `git add .`, commit, and `git push` so all source files are on `main`.
+- **`tailwindcss: command not found`** — Pull latest `package.json` (Tailwind is in `dependencies`).
+- **No Output Directory named "public"** — Ensure `npm run build` runs (creates `public/`). Output Directory must be `public`.
+- **Blank page** — Output must be `public`, not `dist`.
+- **Only README on GitHub** — `git add .`, commit, `git push`.
 
 ---
 

@@ -8,8 +8,9 @@
     "dev": "npx --yes serve@14 -l 3000 .",
     "build:css": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css",
     "watch": "tailwindcss -i ./src/tailwind-input.css -o ./dist/tailwind-output.css --watch",
-    "build": "npm run build:css",
-    "vercel-build": "npm run build:css && node scripts/prepare-public.cjs",
+    "build": "npm run build:css && node scripts/prepare-public.cjs",
+    "build:css-only": "npm run build:css",
+    "vercel-build": "npm run build",
     "preview": "npx --yes serve@14 -l 3000 ."
   },
   "keywords": [
@@ -20,6 +21,9 @@
   ],
   "author": "Jai Gudivada",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.15",
