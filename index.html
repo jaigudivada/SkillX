@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5b8def">
+  <title>SkillX • Anonymous Skill Exchange</title>
+  <link rel="icon" type="image/png" href="./assets/images/logo.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+
+  <!-- Offline Fonts -->
+  <link rel="stylesheet" href="./assets/fonts/fonts.css">
+
+  <!-- Tailwind CSS (generated via CLI) -->
+  <link rel="stylesheet" href="./dist/tailwind-output.css">
+
+  <!-- Font Awesome (local) -->
+  <link rel="stylesheet" href="./fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body class="preloader-active">
+  <!-- Preloader -->
+  <div id="preloader" class="preloader" role="status" aria-live="polite" aria-label="Loading SkillX">
+    <div class="preloader-inner">
+      <img class="preloader-logo" src="./assets/images/logo.png" alt="SkillX" width="200" height="200" decoding="async" />
+      <p class="preloader-loading">Loading</p>
+      <div class="preloader-progress">
+        <div class="preloader-progress-track">
+          <div id="preloader-bar" class="preloader-progress-bar"></div>
+        </div>
+        <span id="preloader-percent" class="preloader-percent">1%</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var DURATION = 3000;
+      var el = document.getElementById('preloader');
+      var bar = document.getElementById('preloader-bar');
+      var percent = document.getElementById('preloader-percent');
+      if (!el) return;
+
+      var start = performance.now();
+
+      function finish() {
+        if (bar) bar.style.width = '100%';
+        if (percent) percent.textContent = '100%';
+        el.classList.add('preloader--hide');
+        document.body.classList.remove('preloader-active');
+        el.addEventListener('transitionend', function () { el.remove(); }, { once: true });
+      }
+
+      function tick(now) {
+        var elapsed = Math.min(DURATION, now - start);
+        var pct = Math.max(1, Math.min(100, Math.round((elapsed / DURATION) * 100)));
+        if (bar) bar.style.width = pct + '%';
+        if (percent) percent.textContent = pct + '%';
+        if (elapsed < DURATION) {
+          requestAnimationFrame(tick);
+        } else {
+          finish();
+        }
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
+
+  <!-- ════════════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════════════ -->
+  <div id="auth-screen">
+    <div class="auth-box">
+
+      <!-- Logo -->
+      <div class="auth-logo-wrap">
+        <img class="auth-logo" src="./assets/images/logo.png" alt="SkillX — Anonymous Skill Exchange" loading="eager" decoding="async" />
+      </div>
+
+      <!-- Tagline -->
+      <p class="auth-tagline">Share skills anonymously. No names, no bias.</p>
+
+      <!-- Segmented Toggle -->
+      <div id="login-toggle" role="group" aria-label="Login mode" class="auth-segmented">
+        <div class="auth-segmented-track" id="auth-track"></div>
+        <button id="user-toggle" type="button" aria-pressed="true" class="auth-tab active"
+          onclick="switchAuth('user')">
+          <i class="fa-solid fa-user auth-tab-icon"></i>
+          <span>User Access</span>
+        </button>
+        <button id="admin-toggle" type="button" aria-pressed="false" class="auth-tab"
+          onclick="switchAuth('admin')">
+          <i class="fa-solid fa-shield-halved auth-tab-icon"></i>
+          <span>Admin Login</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form id="auth-form" onsubmit="handleAuth(event)" novalidate>
+        <div class="auth-fields">
+
+          <!-- Username -->
+          <div id="username-row" class="auth-field-group">
+            <label for="username" class="auth-label">
+              <i class="fa-solid fa-at auth-label-icon"></i>
+              <span id="username-label-text">Username</span>
+            </label>
+            <input id="username" type="text" class="form-input auth-input" placeholder="Enter your username" required autocomplete="username" />
+          </div>
+
+          <!-- Password (hidden by default, shown for Admin) -->
+          <div class="auth-password-row" style="display:none;">
+            <label for="password" class="auth-label">
+              <i class="fa-solid fa-lock auth-label-icon"></i>
+              Password
+            </label>
+            <div class="auth-password-field">
+              <input id="password" type="password" class="form-input auth-input auth-password-input" placeholder="Enter admin password"
+                autocomplete="current-password" />
+              <button type="button" onclick="togglePassword()" class="auth-password-toggle"
+                aria-label="Toggle password visibility">
+                <i id="pw-eye" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Hidden confirm-password kept for JS compatibility -->
+          <input id="confirm-password" type="hidden" />
+        </div>
+
+        <!-- Error / success message -->
+        <p id="auth-message" class="auth-message" aria-live="polite"></p>
+
+        <!-- Submit -->
+        <button type="submit" id="submitButton" class="auth-submit-btn">
+          <span class="auth-btn-text">Continue as User</span>
+          <i class="fa-solid fa-arrow-right auth-btn-arrow"></i>
+        </button>
+      </form>
+
+      <!-- Trust badges -->
+      <div class="auth-trust">
+        <div class="auth-trust-item">
+          <i class="fa-solid fa-envelope-circle-check"></i>
+          <span>No email required</span>
+        </div>
+        <div class="auth-trust-divider"></div>
+        <div class="auth-trust-item">
+          <i class="fa-solid fa-user-secret"></i>
+          <span>100% anonymous</span>
+        </div>
+        <div class="auth-trust-divider"></div>
+        <div class="auth-trust-item">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>No tracking</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════ -->
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- Mobile overlay -->
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col h-full">
+
+      <!-- Logo -->
+      <div class="px-4 py-3" style="border-bottom:2px solid var(--line-thick);">
+        <div class="w-full h-14">
+          <img class="brand-logo" src="./assets/images/logo.png" alt="SkillX logo" loading="eager" decoding="async" />
+        </div>
+      </div>
+
+      <!-- Nav -->
+      <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+        <a id="nav-home" class="nav-item active" onclick="navigateTo('home')">
+          <i class="nav-icon fa-solid fa-house-chimney"></i><span>Home</span>
+        </a>
+        <a id="nav-browse" class="nav-item" onclick="navigateTo('browse')">
+          <i class="nav-icon fa-solid fa-compass"></i><span>Browse Skills</span>
+        </a>
+        <a id="nav-post" class="nav-item" onclick="navigateTo('post')">
+          <i class="nav-icon fa-solid fa-circle-plus"></i><span>Post a Skill</span>
+        </a>
+        <a id="nav-matches" class="nav-item" onclick="navigateTo('matches')">
+          <i class="nav-icon fa-solid fa-heart-circle-check"></i>
+          <span>Matches</span>
+          <span id="match-count-badge" class="ml-auto text-xs px-2.5 py-1 rounded-lg font-bold"
+            style="background:var(--green-soft); color:var(--green);">0</span>
+        </a>
+        <a id="nav-my-posts" class="nav-item" onclick="navigateTo('my-posts')">
+          <i class="nav-icon fa-solid fa-layer-group"></i><span>My Activity</span>
+        </a>
+        <a id="nav-bookmarks" class="nav-item" onclick="navigateTo('bookmarks')">
+          <i class="nav-icon fa-solid fa-bookmark"></i><span>Saved Skills</span>
+        </a>
+
+        <!-- Admin sidebar navigation (visible only in Admin Panel mode) -->
+        <div id="admin-sidebar-nav" class="space-y-0.5" style="display:none;">
+          <div class="text-2xs font-black uppercase tracking-widest px-2 pt-3 pb-1"
+            style="color:var(--purple); letter-spacing:0.15em;">Admin</div>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('dashboard')">
+            <i class="nav-icon fa-solid fa-chart-pie" style="color:var(--purple);"></i><span>Dashboard</span>
+          </a>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('users')">
+            <i class="nav-icon fa-solid fa-users" style="color:var(--blue);"></i><span>Users</span>
+          </a>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('posts')">
+            <i class="nav-icon fa-solid fa-newspaper" style="color:var(--green);"></i><span>Skills/Posts</span>
+          </a>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('reports')">
+            <i class="nav-icon fa-solid fa-flag" style="color:var(--orange);"></i><span>Reports</span>
+          </a>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('analytics')">
+            <i class="nav-icon fa-solid fa-chart-line" style="color:var(--yellow);"></i><span>Analytics</span>
+          </a>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('logs')">
+            <i class="nav-icon fa-solid fa-clipboard-list" style="color:var(--red);"></i><span>Logs</span>
+          </a>
+          <a class="nav-item admin-sidebar-item" onclick="adminNavigateTo('settings')">
+            <i class="nav-icon fa-solid fa-gear" style="color:var(--ink-4);"></i><span>Settings</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- Sidebar footer -->
+      <div class="px-3 pb-3 pt-2 space-y-0.5" style="border-top:2px solid var(--line-thick);">
+        <!-- Admin nav item -->
+        <a id="nav-admin" class="nav-item" onclick="navigateTo('admin')" style="display:none;">
+          <i class="nav-icon fa-solid fa-shield-halved" style="color:var(--purple);"></i>
+          <span>Admin Panel</span>
+          <span id="admin-report-badge" class="ml-auto text-xs px-2 py-0.5 rounded-lg font-bold"
+            style="background:var(--red-soft); color:var(--danger); display:none;">0</span>
+        </a>
+
+        <!-- User/Admin switches (admin only) -->
+        <a id="nav-user-interface" class="nav-item" onclick="switchToUserInterface()" style="display:none;">
+          <i class="nav-icon fa-solid fa-user" style="color:var(--accent);"></i>
+          <span>User Interface</span>
+        </a>
+
+        <a id="nav-admin-panel-switch" class="nav-item" onclick="switchToAdminPanel()" style="display:none;">
+          <i class="nav-icon fa-solid fa-shield-halved" style="color:var(--purple);"></i>
+          <span>Admin Panel</span>
+        </a>
+
+
+
+        <a class="nav-item" onclick="showSettingsModal()">
+          <i class="nav-icon fa-solid fa-sliders"></i><span>Settings</span>
+        </a>
+        <a class="nav-item" onclick="logout()">
+          <i class="nav-icon fa-solid fa-right-from-bracket" style="color:var(--danger);"></i>
+          <span>Log Out</span>
+        </a>
+
+        <!-- Current user pill -->
+        <div class="mt-2 pt-2 flex items-center gap-2.5 px-2" style="border-top:2px solid var(--line-thick);">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs flex-shrink-0"
+            style="background:var(--purple-soft); color:var(--purple);">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="min-w-0">
+            <div id="sidebar-username" class="text-xs font-bold truncate" style="color:var(--ink-1);">Anonymous</div>
+            <div class="text-2xs mt-0.5 font-semibold" style="color:var(--purple);">● online</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─── MAIN ─── -->
+    <main class="flex-1 flex flex-col min-h-0 overflow-hidden">
+
+      <!-- Topbar -->
+      <header id="topbar" class="flex-shrink-0 flex items-center gap-3 px-4" style="height:56px;">
+
+        <!-- Hamburger (mobile) -->
+        <button onclick="openSidebar()" class="icon-btn lg:hidden">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <!-- Search (hidden in admin panel mode) -->
+        <div id="search-wrapper" class="flex-1 relative max-w-xs">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-2xs"
+            style="color:var(--ink-4);"></i>
+          <input id="global-search" type="text" placeholder="Search skills…" class="w-full h-10 pl-9 pr-3.5 text-xs"
+            onkeyup="if(event.key==='Enter') performGlobalSearch()">
+        </div>
+
+        <!-- ─── ADMIN NAV (inside topbar, fills center when visible) ─── -->
+        <div id="admin-header-nav" class="admin-header-nav">
+          <div class="admin-subnav-inner">
+            <button class="admin-nav-btn active" data-section="dashboard" onclick="adminNavigateTo('dashboard')">
+              <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </button>
+            <button class="admin-nav-btn" data-section="users" onclick="adminNavigateTo('users')">
+              <i class="fa-solid fa-users"></i> Users
+            </button>
+            <button class="admin-nav-btn" data-section="posts" onclick="adminNavigateTo('posts')">
+              <i class="fa-solid fa-newspaper"></i> Skills/Posts
+            </button>
+            <button class="admin-nav-btn" data-section="reports" onclick="adminNavigateTo('reports')">
+              <i class="fa-solid fa-flag"></i> Reports
+              <span id="admin-reports-count-badge" class="admin-badge-count"
+                style="background:var(--red-soft); color:var(--danger);">0</span>
+            </button>
+            <button class="admin-nav-btn" data-section="analytics" onclick="adminNavigateTo('analytics')">
+              <i class="fa-solid fa-chart-line"></i> Analytics
+            </button>
+            <button class="admin-nav-btn" data-section="logs" onclick="adminNavigateTo('logs')">
+              <i class="fa-solid fa-clipboard-list"></i> Logs
+            </button>
+            <button class="admin-nav-btn" data-section="settings" onclick="adminNavigateTo('settings')">
+              <i class="fa-solid fa-gear"></i> Settings
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 ml-auto flex-shrink-0">
+          <button onclick="toggleTheme()" class="icon-btn">
+            <i id="theme-icon" class="fa-solid fa-sun"></i>
+          </button>
+
+          <button onclick="showToast('No new notifications','info')" class="icon-btn relative">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+
+          <button onclick="showProfileModal()" class="flex items-center gap-2 px-2.5 py-1 rounded-xl transition-all"
+            style="border:2px solid var(--line-dim); background:var(--paper-2);">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
+              style="background:var(--accent-dim); color:var(--accent);">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <span id="top-user-id" class="hidden md:block text-xs font-semibold" style="color:var(--ink-3);"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div id="content-area" class="flex-1 min-h-0 overflow-auto">
+
+        <!-- ══ HOME ══ -->
+        <div id="section-home" class="section active p-4 md:p-6">
+          <div class="max-w-5xl mx-auto space-y-4">
+
+            <!-- Hero -->
+            <div class="hero-card p-5 md:p-8">
+              <div class="hero-glow"></div>
+              <div class="relative z-10 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-2xs font-bold mb-4"
+                  style="background:var(--orange-soft); color:var(--orange); border:2px solid var(--orange);">
+                  <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background:var(--orange);"></span>
+                  <span id="stat-users">1,847</span>&nbsp;students sharing right now
+                </div>
+                <h1 class="font-display font-black text-3xl md:text-4xl lg:text-5xl leading-tight mb-3 tracking-tight"
+                  style="color:var(--ink-1);">
+                  Learn without<br>being judged.
+                </h1>
+                <p class="text-sm md:text-base mb-5" style="color:var(--ink-3); max-width:500px; line-height:1.6;">
+                  Anonymous skill exchange for college students.<br>
+                  <span style="font-weight:700;">No names. No ranks. No bias.</span>
+                </p>
+                <div class="flex flex-wrap gap-2.5">
+                  <button onclick="navigateTo('post')" class="btn-accent px-5 py-2.5 text-xs">
+                    <i class="fa-solid fa-plus"></i> Share a Skill
+                  </button>
+                  <button onclick="navigateTo('browse')" class="btn-ghost px-5 py-2.5 text-xs">
+                    <i class="fa-solid fa-compass"></i> Browse Anonymously
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="stat-card stat-card-blue">
+                <div class="stat-value text-2xl md:text-3xl font-display font-black mb-1" id="stat-offers">0</div>
+                <div class="text-2xs font-bold uppercase tracking-wider" style="color:var(--ink-4);">Skills offered
+                </div>
+              </div>
+              <div class="stat-card stat-card-green">
+                <div class="stat-value text-2xl md:text-3xl font-display font-black mb-1" id="stat-seeks">0</div>
+                <div class="text-2xs font-bold uppercase tracking-wider" style="color:var(--ink-4);">Skills sought</div>
+              </div>
+              <div class="stat-card stat-card-yellow">
+                <div class="stat-value text-2xl md:text-3xl font-display font-black mb-1" id="stat-matches">94</div>
+                <div class="text-2xs font-bold uppercase tracking-wider" style="color:var(--ink-4);">Active matches
+                </div>
+              </div>
+              <div class="stat-card stat-card-purple">
+                <div class="stat-value text-2xl md:text-3xl font-display font-black mb-1" id="stat-posts">0</div>
+                <div class="text-2xs font-bold uppercase tracking-wider" style="color:var(--ink-4);">Total posts</div>
+              </div>
+            </div>
+
+            <!-- Featured -->
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="font-display font-black text-xl md:text-2xl tracking-tight" style="color:var(--ink-1);">
+                  Featured this week</h2>
+                <button onclick="navigateTo('browse')"
+                  class="text-2xs font-bold flex items-center gap-1 hover:underline" style="color:var(--blue);">
+                  See all <i class="fa-solid fa-arrow-right text-2xs"></i>
+                </button>
+              </div>
+              <div id="featured-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+              <div id="featured-empty" class="hidden text-center py-10" style="color:var(--ink-4);">
+                <i class="fa-solid fa-seedling text-3xl mb-2 block opacity-40"></i>
+                <p class="text-xs font-bold mb-3" style="color:var(--ink-3);">No skills posted yet. Be the first!</p>
+                <button onclick="navigateTo('post')" class="btn-accent px-5 py-2.5 text-xs">Post a Skill</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="chunky-card p-4">
+                <h3 class="font-display font-black text-lg mb-3" style="color:var(--ink-1);">Trending Skills</h3>
+                <div id="trending-skills" class="space-y-2"></div>
+              </div>
+              <div class="chunky-card p-4">
+                <h3 class="font-display font-black text-lg mb-3" style="color:var(--ink-1);">Recommended For You</h3>
+                <div id="recommended-skills" class="space-y-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ BROWSE ══ -->
+        <div id="section-browse" class="section p-4 md:p-6">
+          <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <h2 class="font-display font-black text-xl md:text-2xl tracking-tight" style="color:var(--ink-1);">Browse
+                Skills</h2>
+              <div class="flex gap-1.5">
+                <button id="tab-offers" class="browse-tab active" onclick="switchBrowseTab(0)">
+                  <i class="fa-solid fa-hand-holding-heart mr-1 text-2xs"></i>Offers to Teach
+                </button>
+                <button id="tab-seeks" class="browse-tab" onclick="switchBrowseTab(1)">
+                  <i class="fa-solid fa-lightbulb mr-1 text-2xs" style="color:var(--green);"></i>Requests to Learn
+                </button>
+              </div>
+            </div>
+
+            <div class="feed-toolbar">
+              <button id="sort-recent" class="premium-chip active" onclick="setBrowseSort('recent')">Most
+                Recent</button>
+              <button id="sort-popular" class="premium-chip" onclick="setBrowseSort('popular')">Most Popular</button>
+              <button id="sort-matches" class="premium-chip" onclick="setBrowseSort('match')">Best Match</button>
+              <button id="clear-filters" class="premium-chip" onclick="resetBrowseFilters()">Clear Filters</button>
+            </div>
+
+            <div class="flex gap-4">
+              <!-- Category sidebar -->
+              <div class="w-44 flex-shrink-0 hidden md:block">
+                <div class="chunky-card p-3 space-y-1">
+                  <div class="text-2xs font-black uppercase tracking-widest px-2 mb-2"
+                    style="color:var(--ink-4); letter-spacing:0.15em;">Categories</div>
+                  <div id="category-filters"></div>
+                </div>
+              </div>
+              <!-- Cards -->
+              <div class="flex-1 min-w-0">
+                <div id="browse-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                <div id="browse-skeleton" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div class="skeleton-card"></div>
+                  <div class="skeleton-card"></div>
+                  <div class="skeleton-card"></div>
+                </div>
+                <div id="browse-empty" class="hidden empty-state" style="color:var(--ink-4);">
+                  <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block opacity-40"></i>
+                  <p class="text-xs font-semibold" style="color:var(--ink-3);">No skills found here yet.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ POST ══ -->
+        <div id="section-post" class="section p-4 md:p-6">
+          <div class="max-w-lg mx-auto">
+            <div class="text-center mb-5">
+              <h2 class="font-display font-black text-xl md:text-2xl mb-2 tracking-tight" style="color:var(--ink-1);">
+                Share a Skill Anonymously</h2>
+              <p class="text-xs font-medium" style="color:var(--ink-4);">Your identity is never revealed to anyone.</p>
+            </div>
+
+            <div class="chunky-card p-5" style="border-width:2px;">
+              <form id="post-form" onsubmit="handlePostSubmit(event)" novalidate>
+
+                <!-- Type toggle -->
+                <div class="mb-4">
+                  <label class="form-label">I Want To</label>
+                  <div class="flex rounded-xl overflow-hidden" style="border:2px solid var(--line-thick);">
+                    <button type="button" id="post-type-offer" onclick="setPostType(0)" class="type-btn is-active">
+                      <i class="fa-solid fa-hand-holding-heart mr-1.5"></i>OFFER TO TEACH
+                    </button>
+                    <button type="button" id="post-type-seek" onclick="setPostType(1)" class="type-btn">
+                      <i class="fa-solid fa-lightbulb mr-1.5" style="color:var(--green);"></i>SEEK TO LEARN
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Level & Category -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                  <div class="dropdown-wrap">
+                    <label class="form-label">Level</label>
+                    <div class="dropdown-trigger" onclick="toggleDropdown('levelMenu')">
+                      <span id="levelText" class="text-xs font-semibold">Intermediate</span>
+                      <i class="fa-solid fa-chevron-down text-2xs" style="color:var(--ink-4);"></i>
+                    </div>
+                    <div class="dropdown-menu" id="levelMenu">
+                      <div class="dropdown-opt" onclick="selectOption('Beginner','levelText','levelMenu')">Beginner
+                      </div>
+                      <div class="dropdown-opt" onclick="selectOption('Intermediate','levelText','levelMenu')">
+                        Intermediate</div>
+                      <div class="dropdown-opt" onclick="selectOption('Advanced','levelText','levelMenu')">Advanced
+                      </div>
+                      <div class="dropdown-opt" onclick="selectOption('Expert / Mentor','levelText','levelMenu')">Expert
+                        / Mentor</div>
+                    </div>
+                  </div>
+
+                  <div class="dropdown-wrap">
+                    <label class="form-label">Category</label>
+                    <div class="dropdown-trigger" onclick="toggleDropdown('categoryMenu')">
+                      <span id="categoryText" class="text-xs font-semibold truncate">Programming & Tech</span>
+                      <i class="fa-solid fa-chevron-down text-2xs ml-2" style="color:var(--ink-4);"></i>
+                    </div>
+                    <div class="dropdown-menu" id="categoryMenu">
+                      <div class="dropdown-opt"
+                        onclick="selectOption('Programming & Tech','categoryText','categoryMenu')">Programming & Tech
+                      </div>
+                      <div class="dropdown-opt"
+                        onclick="selectOption('Design & Creative','categoryText','categoryMenu')">Design & Creative
+                      </div>
+                      <div class="dropdown-opt"
+                        onclick="selectOption('Languages & Communication','categoryText','categoryMenu')">Languages &
+                        Communication</div>
+                      <div class="dropdown-opt"
+                        onclick="selectOption('Academic & Research','categoryText','categoryMenu')">Academic & Research
+                      </div>
+                      <div class="dropdown-opt" onclick="selectOption('Soft Skills','categoryText','categoryMenu')">Soft
+                        Skills</div>
+                      <div class="dropdown-opt" onclick="selectOption('Music & Arts','categoryText','categoryMenu')">
+                        Music & Arts</div>
+                      <div class="dropdown-opt" onclick="selectOption('Other','categoryText','categoryMenu')">Other
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Format -->
+                <div class="dropdown-wrap mb-4">
+                  <label class="form-label">Content Format</label>
+                  <div class="dropdown-trigger" onclick="toggleDropdown('formatMenu')">
+                    <span id="formatText" class="text-xs font-semibold">🎥 Video</span>
+                    <i class="fa-solid fa-chevron-down text-2xs" style="color:var(--ink-4);"></i>
+                  </div>
+                  <div class="dropdown-menu" id="formatMenu">
+                    <div class="dropdown-opt" onclick="selectOption('🎥 Video','formatText','formatMenu')">🎥 Video
+                    </div>
+                    <div class="dropdown-opt" onclick="selectOption('📄 Document','formatText','formatMenu')">📄
+                      Document</div>
+                    <div class="dropdown-opt" onclick="selectOption('🎧 Audio','formatText','formatMenu')">🎧 Audio
+                    </div>
+                    <div class="dropdown-opt" onclick="selectOption('🔗 External Link','formatText','formatMenu')">🔗
+                      External Link</div>
+                    <div class="dropdown-opt" onclick="selectOption('💬 Live Session','formatText','formatMenu')">💬
+                      Live Session</div>
+                  </div>
+                </div>
+
+                <!-- Resource link -->
+                <div class="mb-4">
+                  <label class="form-label">Resource Link <span style="opacity:0.6;">(optional)</span></label>
+                  <input id="resource-link" type="url" class="form-input" placeholder="https://…">
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Skill Tags <span style="opacity:0.6;">(comma separated)</span></label>
+                  <input id="post-tags" type="text" class="form-input" placeholder="react, interview, beginner">
+                </div>
+
+                <!-- Skill title -->
+                <div class="mb-4">
+                  <label class="form-label">Skill Title</label>
+                  <input id="post-skill" type="text" class="form-input"
+                    placeholder="e.g. React Hooks, Canva Design, Spanish Conversation" required>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-5">
+                  <label class="form-label">Description</label>
+                  <textarea id="post-desc" rows="3" class="form-input resize-none"
+                    placeholder="What will the learner gain? Any prerequisites? How do you prefer to teach/learn?"
+                    required></textarea>
+                </div>
+
+                <button type="submit" class="btn-accent w-full py-2.5 text-xs">
+                  <i class="fa-solid fa-paper-plane mr-1.5"></i>PUBLISH ANONYMOUSLY
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ MATCHES ══ -->
+        <div id="section-matches" class="section p-4 md:p-6">
+          <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-display font-black text-xl md:text-2xl tracking-tight" style="color:var(--ink-1);">Your
+                  Matches</h2>
+                <p class="text-xs mt-0.5 font-medium" style="color:var(--ink-4);">People whose skills complement yours
+                </p>
+              </div>
+              <button onclick="refreshMatches()" class="btn-ghost px-4 py-2 text-2xs">
+                <i class="fa-solid fa-rotate"></i> Refresh
+              </button>
+            </div>
+            <div id="matches-container" class="grid grid-cols-1 lg:grid-cols-2 gap-3"></div>
+            <div id="matches-empty" class="hidden text-center py-10" style="color:var(--ink-4);">
+              <i class="fa-solid fa-heart-crack text-3xl mb-2 block opacity-40"></i>
+              <p class="text-lg font-bold mb-1" style="color:var(--ink-1);">No matches yet</p>
+              <p class="text-xs mb-4 font-medium" style="color:var(--ink-3);">Post a skill to start finding people who
+                complement your abilities.</p>
+              <button onclick="navigateTo('post')" class="btn-accent px-5 py-2.5 text-xs">Post a Skill</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ MY ACTIVITY ══ -->
+        <div id="section-my-posts" class="section p-4 md:p-6">
+          <div class="max-w-5xl mx-auto">
+            <h2 class="font-display font-black text-xl md:text-2xl mb-5 tracking-tight" style="color:var(--ink-1);">My
+              Anonymous Activity</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Offers -->
+              <div>
+                <div class="flex items-center gap-2.5 mb-4">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style="background:var(--blue-soft); border:2px solid var(--blue);">
+                    <i class="fa-solid fa-hand-holding-heart text-xs" style="color:var(--blue);"></i>
+                  </div>
+                  <span class="font-bold text-base" style="color:var(--ink-1);">Skills I Offer</span>
+                </div>
+                <div id="my-offers-list" class="space-y-2.5"></div>
+              </div>
+              <!-- Seeks -->
+              <div>
+                <div class="flex items-center gap-2.5 mb-4">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style="background:var(--green-soft); border:2px solid var(--green);">
+                    <i class="fa-solid fa-lightbulb text-xs" style="color:var(--green);"></i>
+                  </div>
+                  <span class="font-bold text-base" style="color:var(--ink-1);">Skills I Seek</span>
+                </div>
+                <div id="my-seeks-list" class="space-y-2.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-bookmarks" class="section p-4 md:p-6">
+          <div class="max-w-5xl mx-auto">
+            <h2 class="font-display font-black text-xl md:text-2xl mb-5 tracking-tight" style="color:var(--ink-1);">
+              Saved Skills</h2>
+            <div id="bookmarks-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+            <div id="bookmarks-empty" class="empty-state hidden">
+              <i class="fa-solid fa-bookmark text-3xl mb-2 block opacity-40"></i>
+              <p class="text-xs font-semibold" style="color:var(--ink-3);">No saved skills yet. Bookmark from browse.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════
+           ADMIN PANEL SECTIONS
+           ════════════════════════════════════════════════ -->
+
+        <!-- ══ ADMIN DASHBOARD ══ -->
+        <div id="section-admin" class="section p-4 md:p-6">
+          <div class="max-w-6xl mx-auto">
+
+            <!-- Admin tab panes -->
+            <div id="admin-dashboard" class="admin-pane active">
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-5">
+                <div class="admin-stat-card" style="background:var(--blue-soft); border:2.5px solid var(--blue);">
+                  <div class="admin-stat-icon" style="background:var(--blue-dim);"><i class="fa-solid fa-users"
+                      style="color:var(--blue);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-users" style="color:var(--blue);">0</div>
+                  <div class="admin-stat-label">Total Users</div>
+                </div>
+                <div class="admin-stat-card" style="background:var(--green-soft); border:2.5px solid var(--green);">
+                  <div class="admin-stat-icon" style="background:var(--green-dim);"><i class="fa-solid fa-newspaper"
+                      style="color:var(--green);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-posts" style="color:var(--green);">0</div>
+                  <div class="admin-stat-label">Total Posts</div>
+                </div>
+                <div class="admin-stat-card" style="background:var(--orange-soft); border:2.5px solid var(--orange);">
+                  <div class="admin-stat-icon" style="background:var(--orange-dim);"><i class="fa-solid fa-flag"
+                      style="color:var(--orange);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-reports" style="color:var(--orange);">0</div>
+                  <div class="admin-stat-label">Active Reports</div>
+                </div>
+                <div class="admin-stat-card" style="background:var(--yellow-soft); border:2.5px solid var(--yellow);">
+                  <div class="admin-stat-icon" style="background:var(--yellow-dim);"><i class="fa-solid fa-ban"
+                      style="color:var(--yellow);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-banned" style="color:var(--yellow);">0</div>
+                  <div class="admin-stat-label">Banned Users</div>
+                </div>
+                <div class="admin-stat-card" style="background:var(--pink-soft); border:2.5px solid var(--pink);">
+                  <div class="admin-stat-icon" style="background:var(--pink-dim);"><i class="fa-solid fa-handshake"
+                      style="color:var(--pink);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-matches" style="color:var(--pink);">0</div>
+                  <div class="admin-stat-label">Matches</div>
+                </div>
+                <div class="admin-stat-card" style="background:var(--green-soft); border:2.5px solid var(--green);">
+                  <div class="admin-stat-icon" style="background:var(--green-dim);"><i class="fa-solid fa-user-check"
+                      style="color:var(--green);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-active" style="color:var(--green);">0</div>
+                  <div class="admin-stat-label">Active Users</div>
+                </div>
+                <div class="admin-stat-card" style="background:var(--blue-soft); border:2.5px solid var(--blue);">
+                  <div class="admin-stat-icon" style="background:var(--blue-dim);"><i class="fa-solid fa-shield"
+                      style="color:var(--blue);"></i></div>
+                  <div class="admin-stat-value" id="admin-stat-reports-handled" style="color:var(--blue);">0</div>
+                  <div class="admin-stat-label">Reports Handled</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">📊 Platform Overview</h4>
+                  <div id="admin-overview-list" class="space-y-2 text-xs" style="color:var(--ink-3);"></div>
+                </div>
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">📈 Top Categories</h4>
+                  <div id="admin-top-categories" class="space-y-2"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ══ ADMIN USERS ══ -->
+            <div id="admin-users" class="admin-pane">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style="background:var(--blue-soft); border:2px solid var(--blue);">
+                    <i class="fa-solid fa-users text-xs" style="color:var(--blue);"></i>
+                  </div>
+                  <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">User Management
+                  </h3>
+                </div>
+                <div class="flex gap-2">
+                  <input id="admin-user-search" type="text" class="form-input py-1.5 text-xs" style="width:180px;"
+                    placeholder="Search users…" onkeyup="renderAdminUsers()">
+                </div>
+              </div>
+              <div class="admin-table-wrap">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Username</th>
+                      <th>Status</th>
+                      <th>Role</th>
+                      <th>Posts</th>
+                      <th>Joined</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-tbody"></tbody>
+                </table>
+              </div>
+              <div id="admin-users-empty" class="hidden text-center py-10" style="color:var(--ink-4);">
+                <p class="text-xs font-medium">No users found.</p>
+              </div>
+            </div>
+
+            <!-- ══ ADMIN POSTS ══ -->
+            <div id="admin-posts" class="admin-pane">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style="background:var(--green-soft); border:2px solid var(--green);">
+                    <i class="fa-solid fa-newspaper text-xs" style="color:var(--green);"></i>
+                  </div>
+                  <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Skill / Post
+                    Moderation</h3>
+                </div>
+                <div class="flex gap-2">
+                  <select id="admin-post-filter" class="form-input py-1.5 text-xs" onchange="renderAdminPosts()"
+                    style="width:130px;">
+                    <option value="all">All Types</option>
+                    <option value="offer">Offers</option>
+                    <option value="seek">Seeks</option>
+                  </select>
+                  <input id="admin-post-search" type="text" class="form-input py-1.5 text-xs" style="width:160px;"
+                    placeholder="Search posts…" onkeyup="renderAdminPosts()">
+                </div>
+              </div>
+              <div class="admin-table-wrap">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Type</th>
+                      <th>User</th>
+                      <th>Category</th>
+                      <th>Reports</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-posts-tbody"></tbody>
+                </table>
+              </div>
+              <div id="admin-posts-empty" class="hidden text-center py-10" style="color:var(--ink-4);">
+                <p class="text-xs font-medium">No posts found.</p>
+              </div>
+            </div>
+
+            <!-- ══ ADMIN REPORTS ══ -->
+            <div id="admin-reports" class="admin-pane">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style="background:var(--orange-soft); border:2px solid var(--orange);">
+                    <i class="fa-solid fa-flag text-xs" style="color:var(--orange);"></i>
+                  </div>
+                  <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Reports &
+                    Moderation</h3>
+                </div>
+                <select id="admin-report-filter" class="form-input py-1.5 text-xs" style="width:170px;"
+                  onchange="renderAdminReports()">
+                  <option value="pending">Pending</option>
+                  <option value="investigating">Investigating</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="dismissed">Dismissed</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+              <div id="admin-reports-container" class="space-y-2"></div>
+              <div id="admin-reports-empty" class="text-center py-10" style="color:var(--ink-4);">
+                <i class="fa-solid fa-check-circle text-3xl mb-2 block opacity-30"></i>
+                <p class="text-xs font-semibold">No pending reports. All clear!</p>
+              </div>
+            </div>
+
+            <!-- ══ ADMIN ANALYTICS ══ -->
+            <div id="admin-analytics" class="admin-pane">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style="background:var(--pink-soft); border:2px solid var(--pink);">
+                  <i class="fa-solid fa-chart-line text-xs" style="color:var(--pink);"></i>
+                </div>
+                <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Platform
+                  Analytics</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">📊 Engagement Overview
+                  </h4>
+                  <div id="admin-analytics-engagement" class="space-y-2 text-xs" style="color:var(--ink-3);"></div>
+                </div>
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">📉 KPI Charts</h4>
+                  <div id="admin-kpi-chart" class="mini-chart"></div>
+                </div>
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">📈 Category Distribution
+                  </h4>
+                  <div id="admin-analytics-categories" class="space-y-2"></div>
+                </div>
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">👥 User Growth</h4>
+                  <div id="admin-analytics-users" class="space-y-2 text-xs" style="color:var(--ink-3);"></div>
+                </div>
+                <div class="chunky-card p-4">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">📋 Content Stats</h4>
+                  <div id="admin-analytics-content" class="space-y-2 text-xs" style="color:var(--ink-3);"></div>
+                </div>
+                <div class="chunky-card p-4 md:col-span-2">
+                  <h4 class="font-display font-black text-sm mb-3" style="color:var(--ink-1);">🧭 Moderation Timeline
+                  </h4>
+                  <div id="admin-timeline" class="space-y-2 text-xs" style="color:var(--ink-3);"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ══ ADMIN LOGS ══ -->
+            <div id="admin-logs" class="admin-pane">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style="background:var(--yellow-soft); border:2px solid var(--yellow);">
+                    <i class="fa-solid fa-clipboard-list text-xs" style="color:var(--yellow);"></i>
+                  </div>
+                  <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Activity Logs
+                  </h3>
+                </div>
+                <button onclick="clearAdminLogs()" class="py-1.5 px-3 text-2xs rounded-lg font-bold"
+                  style="border:2px solid var(--danger-dim); color:var(--danger); background:transparent;">
+                  <i class="fa-solid fa-trash-can mr-1"></i> Clear Logs
+                </button>
+              </div>
+              <div class="admin-table-wrap">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Action</th>
+                      <th>Details</th>
+                      <th>Affected</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-logs-tbody"></tbody>
+                </table>
+              </div>
+              <div id="admin-logs-empty" class="hidden text-center py-10" style="color:var(--ink-4);">
+                <p class="text-xs font-medium">No activity logged yet.</p>
+              </div>
+            </div>
+
+            <!-- ══ ADMIN SETTINGS ══ -->
+            <div id="admin-settings" class="admin-pane">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style="background:var(--blue-soft); border:2px solid var(--blue);">
+                  <i class="fa-solid fa-gear text-xs" style="color:var(--blue);"></i>
+                </div>
+                <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Admin Settings
+                </h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="chunky-card p-4 space-y-4">
+                  <h4 class="font-display font-black text-sm" style="color:var(--ink-1);">Platform Controls</h4>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold" style="color:var(--ink-3);">Maintenance Mode</span>
+                    <button id="admin-toggle-maintenance" onclick="toggleAdminSetting('maintenanceMode')"
+                      class="admin-toggle-btn">OFF</button>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold" style="color:var(--ink-3);">Allow Registrations</span>
+                    <button id="admin-toggle-registrations" onclick="toggleAdminSetting('registrationsEnabled')"
+                      class="admin-toggle-btn admin-toggle-on">ON</button>
+                  </div>
+                  <div style="border-top:2px solid var(--line-dim);"></div>
+                  <button onclick="clearAllReports()" class="w-full py-2.5 text-xs rounded-xl font-bold"
+                    style="border:2px solid var(--orange); color:var(--orange); background:var(--orange-soft);">
+                    <i class="fa-solid fa-flag mr-1"></i> Clear All Reports
+                  </button>
+                </div>
+                <div class="chunky-card p-4 space-y-4">
+                  <h4 class="font-display font-black text-sm" style="color:var(--ink-1);">Data & Maintenance</h4>
+                  <button onclick="exportAdminData()" class="w-full py-2.5 text-xs rounded-xl font-bold"
+                    style="border:2px solid var(--green); color:var(--green); background:var(--green-soft);">
+                    <i class="fa-solid fa-download mr-1"></i> Export Data (JSON)
+                  </button>
+                  <button onclick="resetAnalytics()" class="w-full py-2.5 text-xs rounded-xl font-bold"
+                    style="border:2px solid var(--yellow); color:var(--yellow); background:var(--yellow-soft);">
+                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Reset Analytics
+                  </button>
+                  <button onclick="clearAllAdminData()" class="w-full py-2.5 text-xs rounded-xl font-bold"
+                    style="border:2px solid var(--danger); color:var(--danger); background:var(--red-soft);">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Clear All Admin Data
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- #content-area -->
+
+      <!-- Footer -->
+      <footer id="footer" class="flex-shrink-0 h-10 flex items-center px-4 text-2xs" style="color:var(--ink-4);">
+        <span class="font-semibold">© 2026 Jai Gudivada &nbsp;·&nbsp; SkillX &nbsp;·&nbsp; MIT License</span>
+        <div class="flex-1"></div>
+        <button onclick="clearAllData()"
+          class="transition-colors hover:text-red-500 flex items-center gap-1.5 font-bold" style="color:var(--ink-4);">
+          <i class="fa-solid fa-trash-can text-2xs"></i> Clear all data
+        </button>
+      </footer>
+
+      <nav id="mobile-bottom-nav" class="mobile-bottom-nav">
+        <button onclick="navigateTo('home')" class="mobile-nav-btn"><i
+            class="fa-solid fa-house"></i><span>Home</span></button>
+        <button onclick="navigateTo('browse')" class="mobile-nav-btn"><i
+            class="fa-solid fa-compass"></i><span>Browse</span></button>
+        <button onclick="navigateTo('post')" class="mobile-nav-btn"><i
+            class="fa-solid fa-plus"></i><span>Post</span></button>
+        <button onclick="navigateTo('bookmarks')" class="mobile-nav-btn"><i
+            class="fa-solid fa-bookmark"></i><span>Saved</span></button>
+        <button onclick="showCommandPalette()" class="mobile-nav-btn"><i
+            class="fa-solid fa-bolt"></i><span>Actions</span></button>
+      </nav>
+
+    </main>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════ -->
+
+  <!-- Skill Detail -->
+  <div id="skill-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeSkillModal()">
+    <div class="modal-box w-full max-w-lg p-5" style="background:var(--paper-card); border-width:2.5px;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Skill Details</h3>
+        <button onclick="closeSkillModal()" class="icon-btn">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="space-y-4 mb-5">
+        <div>
+          <div class="form-label mb-1.5">Posted by</div>
+          <div id="modal-user" class="text-xs font-mono font-bold" style="color:var(--ink-3);"></div>
+        </div>
+        <div>
+          <div class="form-label mb-1.5">Skill</div>
+          <div id="modal-title" class="font-bold text-base" style="color:var(--ink-1);"></div>
+        </div>
+        <div>
+          <div class="form-label mb-1.5">Type & Level</div>
+          <div id="modal-type-level" class="flex gap-1.5 flex-wrap"></div>
+        </div>
+        <div>
+          <div class="form-label mb-1.5">Description</div>
+          <div id="modal-description" class="text-xs" style="color:var(--ink-3); line-height:1.6;"></div>
+        </div>
+        <div>
+          <div class="form-label mb-1.5">Format</div>
+          <div id="modal-format" class="text-xs font-semibold" style="color:var(--ink-3);"></div>
+        </div>
+        <div class="skill-resource">
+          <div class="form-label mb-1.5">Resource Link</div>
+          <a id="modal-resource-link"
+             class="resource-link text-sm font-medium"
+             href="#"
+             target="_blank"
+             rel="noopener noreferrer">Not provided</a>
+        </div>
+        <div id="modal-resource-open-wrap" class="flex items-center" style="display:none;">
+          <a id="modal-resource-open"
+             class="btn btn-accent text-xs rounded-xl px-4 py-2 inline-flex items-center gap-2"
+             href="#"
+             target="_blank"
+             rel="noopener noreferrer">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+          </a>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button id="modal-block-btn" onclick="blockCurrentSkillUser()" class="btn-ghost py-2.5 px-3 text-xs">
+          <i class="fa-solid fa-user-slash"></i> Block User
+        </button>
+        <button id="modal-bookmark-btn" onclick="toggleBookmarkFromModal()" class="btn-ghost py-2.5 px-3 text-xs">
+          <i class="fa-solid fa-bookmark"></i> Save
+        </button>
+        <button id="modal-report-btn" onclick="openReportModalFromSkill()" class="btn-ghost py-2.5 px-3 text-xs">
+          <i class="fa-solid fa-flag"></i> Report
+        </button>
+        <button onclick="closeSkillModal()" class="btn-accent flex-1 py-2.5 text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideSettingsModal()">
+    <div class="modal-box w-full max-w-sm overflow-hidden" style="border-width:2.5px;">
+      <div class="flex items-center justify-between px-4 py-3"
+        style="border-bottom:2px solid var(--line-thick); background:var(--blue-light);">
+        <h3 class="font-display font-black text-base tracking-tight" style="color:var(--blue);">Settings</h3>
+        <button onclick="hideSettingsModal()" class="icon-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+      <div class="p-4 space-y-4">
+        <div>
+          <div class="form-label mb-3">Appearance</div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="setTheme('light')" id="theme-light-btn"
+              class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+              style="background:var(--paper-2); border:2px solid var(--yellow);">
+              <i class="fa-solid fa-sun text-lg" style="color:var(--yellow);"></i>
+              <span class="text-2xs font-bold" style="color:var(--ink-3);">Light</span>
+            </button>
+            <button onclick="setTheme('dark')" id="theme-dark-btn"
+              class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+              style="background:var(--paper-2); border:2px solid var(--purple);">
+              <i class="fa-solid fa-moon text-lg" style="color:var(--purple);"></i>
+              <span class="text-2xs font-bold" style="color:var(--ink-3);">Dark</span>
+            </button>
+            <button onclick="setTheme('system')" id="theme-system-btn"
+              class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+              style="background:var(--paper-2); border:2px solid var(--blue);">
+              <i class="fa-solid fa-laptop text-lg" style="color:var(--blue);"></i>
+              <span class="text-2xs font-bold" style="color:var(--ink-3);">System</span>
+            </button>
+          </div>
+        </div>
+        <div style="border-top:2px solid var(--line-dim);"></div>
+        <div>
+          <button onclick="clearAllData()"
+            class="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
+            style="border:2px solid var(--danger); color:var(--danger); background:var(--red-soft);">
+            <i class="fa-solid fa-trash-can"></i> Delete All Data & Reset
+          </button>
+          <p class="text-center text-2xs mt-2 font-semibold" style="color:var(--ink-4);">This action cannot be undone
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div id="profile-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideProfileModal()">
+    <div class="modal-box w-full max-w-xs p-5" style="border-width:2.5px;">
+      <div class="text-center mb-4">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-3xl"
+          style="background:var(--purple-soft); color:var(--purple);">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="text-2xs font-bold uppercase tracking-widest mb-1"
+          style="color:var(--purple); letter-spacing:0.14em;">Your Anonymous ID</div>
+        <div id="profile-user-id" class="font-display font-black text-xl tracking-tight" style="color:var(--ink-1);">
+        </div>
+      </div>
+      <div class="rounded-xl p-3 space-y-2 mb-4" style="background:var(--paper-2); border:2px solid var(--line-dim);">
+        <div class="flex justify-between text-2xs">
+          <span class="font-semibold" style="color:var(--ink-4);">Joined</span>
+          <span id="profile-joined-date" class="font-bold" style="color:var(--ink-1);"></span>
+        </div>
+        <div class="flex justify-between text-2xs">
+          <span class="font-semibold" style="color:var(--ink-4);">Skills offered</span>
+          <span id="profile-offers-count" class="font-bold" style="color:var(--blue);">0</span>
+        </div>
+        <div class="flex justify-between text-2xs">
+          <span class="font-semibold" style="color:var(--ink-4);">Skills sought</span>
+          <span id="profile-seeks-count" class="font-bold" style="color:var(--green);">0</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <button onclick="hideProfileModal()" class="btn-ghost py-2 text-2xs">Close</button>
+        <button onclick="deleteAccount()" class="py-2 text-2xs rounded-xl font-bold transition-all"
+          style="border:2px solid var(--danger-dim); color:var(--danger); background:transparent; cursor:pointer;">
+          Delete Account Permanently
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post Success -->
+  <div id="success-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideSuccessModal()">
+    <div class="modal-box w-full max-w-xs p-6 text-center"
+      style="border-width:2.5px; background:linear-gradient(135deg, var(--green-light), var(--paper-card));">
+      <div class="text-4xl mb-4">🎉</div>
+      <h3 class="font-display font-black text-xl mb-1 tracking-tight" style="color:var(--green);">Published!</h3>
+      <p class="text-xs mb-5 font-medium" style="color:var(--ink-4);">
+        Your skill is now visible to the community.<br>No one knows it's you.
+      </p>
+      <button onclick="hideSuccessModal()" class="btn-accent w-full py-2.5 text-xs">
+        Continue Exploring
+      </button>
+    </div>
+  </div>
+
+  <!-- Admin Confirmation Modal -->
+  <div id="admin-confirm-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideAdminConfirm()">
+    <div class="modal-box w-full max-w-sm p-5" style="border-width:2.5px;">
+      <div class="text-center mb-4">
+        <div id="admin-confirm-icon"
+          class="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center text-2xl"
+          style="background:var(--red-soft); border:2.5px solid var(--danger);"><i
+            class="fa-solid fa-triangle-exclamation" style="color:var(--danger);"></i></div>
+        <h3 id="admin-confirm-title" class="font-display font-black text-lg tracking-tight mb-2"
+          style="color:var(--ink-1);">Confirm Action</h3>
+        <p id="admin-confirm-message" class="text-xs" style="color:var(--ink-3);">Are you sure?</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="admin-confirm-cancel" onclick="hideAdminConfirm()"
+          class="btn-ghost flex-1 py-2.5 text-xs">Cancel</button>
+        <button id="admin-confirm-proceed" onclick="proceedAdminConfirm()"
+          class="flex-1 py-2.5 text-xs rounded-xl font-bold"
+          style="border:2px solid var(--danger); color:var(--danger); background:var(--red-soft);">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Detail Modal -->
+  <div id="admin-report-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideAdminReportModal()">
+    <div class="modal-box w-full max-w-md p-5" style="border-width:2.5px;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-black text-base tracking-tight" style="color:var(--ink-1);">Report Details</h3>
+        <button onclick="hideAdminReportModal()" class="icon-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+      <div id="admin-report-modal-body" class="space-y-3 text-xs" style="color:var(--ink-3);"></div>
+      <div id="admin-report-modal-actions" class="flex gap-2 mt-4"></div>
+    </div>
+  </div>
+
+  <div id="report-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideReportModal()">
+    <div class="modal-box w-full max-w-md p-5" style="border-width:2.5px;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-black text-base tracking-tight" style="color:var(--ink-1);">Report Content</h3>
+        <button onclick="hideReportModal()" class="icon-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="form-label">Reason</label>
+          <select id="report-reason" class="form-input">
+            <option value="spam">Spam or scam</option>
+            <option value="harassment">Harassment or hate</option>
+            <option value="adult">Adult or unsafe content</option>
+            <option value="misleading">Misleading information</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Details (optional)</label>
+          <textarea id="report-details" class="form-input resize-none" rows="3"
+            placeholder="Share context for moderators"></textarea>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="hideReportModal()" class="btn-ghost flex-1 py-2.5 text-xs">Cancel</button>
+        <button onclick="submitReport()" class="btn-accent flex-1 py-2.5 text-xs">Submit Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="onboarding-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideOnboarding()">
+    <div class="modal-box w-full max-w-lg p-5" style="border-width:2.5px;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-black text-lg tracking-tight" style="color:var(--ink-1);">Welcome to SkillX</h3>
+        <button onclick="hideOnboarding()" class="icon-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+      <div id="onboarding-content" class="space-y-3 text-xs" style="color:var(--ink-3);"></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="prevOnboardingStep()" class="btn-ghost flex-1 py-2.5 text-xs">Back</button>
+        <button onclick="nextOnboardingStep()" class="btn-accent flex-1 py-2.5 text-xs">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="command-palette-modal" class="modal-backdrop hidden" onclick="if(event.target===this)hideCommandPalette()">
+    <div class="modal-box w-full max-w-xl p-4" style="border-width:2.5px;">
+      <div class="mb-3">
+        <input id="command-palette-search" type="text" class="form-input"
+          placeholder="Type a command (e.g. go to browse)" oninput="renderCommandPalette()">
+      </div>
+      <div id="command-palette-results" class="space-y-1"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 items-end"></div>
+
+  <script type="module" src="./scripts/main.js"></script>
+</body>
+
+</html>
